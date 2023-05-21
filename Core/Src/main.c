@@ -110,7 +110,7 @@ float getTemp(){
 	return Temperature;
 }
 int getMoist(){
-	return (int)advcal[1];
+	return (int)(advcal[1]/10);
 }
 int getLight(){
 	return (int)advcal[0];
@@ -272,7 +272,23 @@ void readMoist(){
 	HAL_Delay(200);
 }
 
+void pumpOn(){
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+}
+void pumpOff(){
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+}
 
+void SensorReport(){
+	sprintf(line , "========================================\n\r" , x);
+	heyTempurature();
+	readLight();
+	readMoist();
+	HAL_UART_Transmit(&huart2, line, sizeof(line), HAL_MAX_DELAY);
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -284,7 +300,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	float readTemp;
 	int readm , readl;
-	sprintf(line , "========================================\n\r" , x);
+
 
   /* USER CODE END 1 */
 
@@ -319,7 +335,7 @@ int main(void)
 
 
   setLightOperate(460);
-  setTempBound(18 , 20);//for room testing
+  setTempBound(22 , 27);//for room testing
   setMoistureBound(190, 240);
 
   /* USER CODE END 2 */
@@ -331,22 +347,25 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  heyTempurature();
-	  readLight();
-	  readMoist();
+
 	  readl = getLight();
 	  readm = getMoist();
 	  readTemp = getTemp();
-	  HAL_UART_Transmit(&huart2, line, sizeof(line), HAL_MAX_DELAY);
-	  if(readl > lightOperate && (readm  > mDry || readTemp > TempHot)){
-		  /*while(getMoist() < mWet && getTemp() > TempCold){
+	  SensorReport();
+	  if((readl > lightOperate) && (readm  > mDry || readTemp > TempHot)){
+		  while(getMoist() > mWet ){//&& getTemp() > TempCold){
 			  // pump working // TBA
+			  SensorReport();
+			  pumpOn();
 			  HAL_Delay(200);
-		  }*/
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+
+		  }
+		  pumpOff();
 	  }
-	  else
-		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	  else{
+		  pumpOff();
+	  }
+	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	  HAL_Delay(200);
 
   }
@@ -440,7 +459,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -605,7 +624,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_8, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -613,12 +632,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin PA8 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
