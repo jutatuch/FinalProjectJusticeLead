@@ -74,7 +74,10 @@ uint16_t advcal[2];
 char txt[1000];
 int x = 0;
 
+char dataToMcu[17];
+
 char line[1000];
+
 float Temperature = 0;
 //float Humidity = 0;
 uint8_t Presence = 0;
@@ -289,6 +292,14 @@ void SensorReport(){
 	HAL_UART_Transmit(&huart2, line, sizeof(line), HAL_MAX_DELAY);
 
 }
+
+void heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry(void){
+	HAL_Delay(1000);
+	//sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1],advcal[0]); //,temp,moist,light
+	sprintf(dataToMcu,",%d,%d,%d_", (int) rand()%2000,rand()%2000,rand()%2000); //,temp,moist,light
+	HAL_UART_Transmit(&huart1, dataToMcu, sizeof(dataToMcu), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, dataToMcu, sizeof(dataToMcu), HAL_MAX_DELAY);
+}
 /* USER CODE END 0 */
 
 /**
@@ -367,6 +378,7 @@ int main(void)
 	  }
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	  HAL_Delay(200);
+	  heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry();
 
   }
   /* USER CODE END 3 */
