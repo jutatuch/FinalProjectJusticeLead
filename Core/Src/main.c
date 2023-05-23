@@ -74,7 +74,7 @@ uint16_t advcal[2];
 char txt[1000];
 int x = 0;
 
-char dataToMcu[17];
+char dataToMcu[50] = "";
 
 char line[1000];
 
@@ -90,8 +90,9 @@ float TempCold = 22.0;
 int mDry = 300; // high value = dry
 int mWet = 200; // low value = wet
 
-int lightOperate = 500;
-
+int lightOperateLower = 500;
+int lightOperateUpper = 1100;
+//==============================================================
 void setMoistureBound(int wet, int dry){
 	mDry = dry;
 	mWet = wet;
@@ -102,11 +103,18 @@ void setTempBound(float cold , float hot){
 	TempCold = cold;
 }
 
-void setLightOperate(int bound){
+void setLightOperate(int lower , int upper){
 
-	lightOperate = bound;
+	lightOperateLower = lower;
+	lightOperateUpper = upper;
 }
 
+int isLightInBound(int light){
+	if ((light > lightOperateLower) && (light < lightOperateUpper )){
+		return 1;
+	}
+	return 0;
+}
 //==============================================================
 
 float getTemp(){
@@ -285,7 +293,7 @@ void pumpOff(){
 }
 
 void SensorReport(){
-	sprintf(line , "========================================\n\r" , x);
+	sprintf(line , "\n\r========================================\n\r" , x);
 	heyTempurature();
 	readLight();
 	readMoist();
@@ -294,11 +302,12 @@ void SensorReport(){
 }
 
 void heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry(void){
-	HAL_Delay(1000);
+	HAL_Delay(30000);
 	//sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1],advcal[0]); //,temp,moist,light
-	sprintf(dataToMcu,",%d,%d,%d_", (int) rand()%2000,rand()%2000,rand()%2000); //,temp,moist,light
+	sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1]/10,advcal[0]); //,temp,moist,light
 	HAL_UART_Transmit(&huart1, dataToMcu, sizeof(dataToMcu), HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, dataToMcu, sizeof(dataToMcu), HAL_MAX_DELAY);
+	strcpy(dataToMcu,"");
 }
 /* USER CODE END 0 */
 
@@ -345,7 +354,7 @@ int main(void)
   HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
 
 
-  setLightOperate(460);
+  setLightOperate(460 , 1100);
   setTempBound(22 , 27);//for room testing
   setMoistureBound(190, 240);
 
@@ -363,11 +372,12 @@ int main(void)
 	  readm = getMoist();
 	  readTemp = getTemp();
 	  SensorReport();
-	  if((readl > lightOperate) && (readm  > mDry || readTemp > TempHot)){
+	  if((isLightInBound(readl) > 0) && (readm  > mDry || readTemp > TempHot)){
 		  while(getMoist() > mWet ){//&& getTemp() > TempCold){
 			  // pump working // TBA
 			  SensorReport();
 			  pumpOn();
+			  heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry();
 			  HAL_Delay(200);
 
 		  }
@@ -379,6 +389,7 @@ int main(void)
 	  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 	  HAL_Delay(200);
 	  heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry();
+	  HAL_UART_Transmit(&huart2, line, sizeof(line), HAL_MAX_DELAY);
 
   }
   /* USER CODE END 3 */
@@ -552,7 +563,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
