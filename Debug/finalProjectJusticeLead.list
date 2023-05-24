@@ -2106,8 +2106,8 @@ void heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry(void){
  8001540:	b580      	push	{r7, lr}
  8001542:	b082      	sub	sp, #8
  8001544:	af02      	add	r7, sp, #8
-	HAL_Delay(30000);
- 8001546:	f247 5030 	movw	r0, #30000	; 0x7530
+	HAL_Delay(1000);
+ 8001546:	f44f 707a 	mov.w	r0, #1000	; 0x3e8
  800154a:	f000 fdc7 	bl	80020dc <HAL_Delay>
 	//sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1],advcal[0]); //,temp,moist,light
 	sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1]/10,advcal[0]); //,temp,moist,light

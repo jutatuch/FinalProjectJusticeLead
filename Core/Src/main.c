@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+//Thanks you ajarns, Thanks you TAs, and also thanks to everyone who support us.
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -302,7 +303,7 @@ void SensorReport(){
 }
 
 void heyDataPleaseeeeGoToNodeMCUifYouDontGoIwillCry(void){
-	HAL_Delay(30000);
+	HAL_Delay(1000);
 	//sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1],advcal[0]); //,temp,moist,light
 	sprintf(dataToMcu,",%d,%d,%d_", (int) Temperature,advcal[1]/10,advcal[0]); //,temp,moist,light
 	HAL_UART_Transmit(&huart1, dataToMcu, sizeof(dataToMcu), HAL_MAX_DELAY);

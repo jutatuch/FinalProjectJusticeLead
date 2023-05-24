@@ -119,7 +119,9 @@ void loop() {
       readString += ch;
     else if (ch == '\0' && readString.length() > 0) {
       Serial.println("Read : " + readString);
-      updateSensorValue(readString);
+      if (readString.length() > 8) {
+        updateSensorValue(readString);
+      }
       readString = "";
     }
   }
@@ -128,14 +130,15 @@ void loop() {
     updateSensorValue(readString);
   }
   */
-  
-  String data = "{\"data\": {\"humidity\": " + String(moistVal) + ", \"temperature\": " + String(tempVal) + ", \"light\" : "+ String(lightVal)+"}}";
+
+  String data = "{\"data\": {\"humidity\": " + String(moistVal) + ", \"temperature\": " + String(tempVal) + ", \"light\" : " + String(lightVal) + "}}";
 
   Serial.println(data);
+  
   data.toCharArray(msg, (data.length() + 1));
   client.publish("@shadow/data/update", msg);
-  delay(30000);
   
+  delay(30000);
 }
 
 /*if (!client.connected()) {
